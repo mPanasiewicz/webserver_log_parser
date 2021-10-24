@@ -10,32 +10,42 @@ class Parser
   def parse(file_path)
     urls = Hash.new { |hash, key| hash[key] = [] }
 
-    file = File.open(file_path)
-    file.readlines.each do |line|
+    File.foreach(file_path) do |line|
       splited_line = line.split(' ')
       urls[splited_line[0]] << splited_line[1]
     end
-    file.close
-    # { most_viewed_pages: count_and_sort_pages(urls) }
-    {
-      most_viewed_pages: count_and_sort_pages(urls),
-      most_uniq_pages: count_and_sort_uniq_pages(urls)
-    }
+    process_urls(urls)
   end
 
   private
 
-  def count_and_sort_pages(urls)
-    urls_amount = {}
-    urls.each do |url, addr|
-      urls_amount[url] = addr.length
-    end
-    urls_amount.sort_by { |_key, value| value }
-               .reverse
-               .to_h
+  def process_urls(urls)
+    {
+      most_viewed_pages: count_and_sort_urls(urls),
+      most_uniq_pages: count_and_sort_urls(urls, &:uniq)
+    }
   end
 
-  def count_and_sort_uniq_pages(_urls)
-    {}
+  def count_and_sort_urls(urls, &block)
+    UrlsSorterService.call(UrlsCounterService.call(urls, &block)).to_h
+  end
+end
+
+class UrlsCounterService
+  def self.call(urls)
+    urls_amount = {}
+
+    urls.each do |url, addr|
+      urls_amount[url] = block_given? ? yield(addr).length : addr.length
+    end
+
+    urls_amount
+  end
+end
+
+class UrlsSorterService
+  def self.call(urls)
+    urls.sort_by { |_key, value| value }
+        .reverse!
   end
 end
