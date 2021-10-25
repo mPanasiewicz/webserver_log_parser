@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require 'pry'
+require_relative './urls_counter_service'
+require_relative './urls_sorter_service'
 
 class Parser
   def self.parse(file_path)
@@ -8,6 +9,8 @@ class Parser
   end
 
   def parse(file_path)
+    raise 'Your file is empty! Nothing to parse' if File.empty?(file_path)
+
     urls = Hash.new { |hash, key| hash[key] = [] }
 
     File.foreach(file_path) do |line|
@@ -28,24 +31,5 @@ class Parser
 
   def count_and_sort_urls(urls, &block)
     UrlsSorterService.call(UrlsCounterService.call(urls, &block)).to_h
-  end
-end
-
-class UrlsCounterService
-  def self.call(urls)
-    urls_amount = {}
-
-    urls.each do |url, addr|
-      urls_amount[url] = block_given? ? yield(addr).length : addr.length
-    end
-
-    urls_amount
-  end
-end
-
-class UrlsSorterService
-  def self.call(urls)
-    urls.sort_by { |_key, value| value }
-        .reverse!
   end
 end

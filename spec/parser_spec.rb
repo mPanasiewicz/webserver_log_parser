@@ -7,7 +7,7 @@ RSpec.describe Parser do
     subject(:parser) { Parser.parse(file) }
 
     context 'when the file is not empty' do
-      let(:file) { '/Users/maciejpanasiewicz/Downloads/SP Ruby Test/ruby_app/webserver.log' }
+      let(:file) { './spec/fixtures/webserver.log' }
       let(:result) do
         {
           most_viewed_pages: { '/about/2' => 90, '/contact' => 89, '/index' => 82, '/about' => 81,
@@ -47,6 +47,14 @@ RSpec.describe Parser do
         it 'returns amount of uniq urls' do
           expect(parser[:most_uniq_pages]).to eq(result[:most_uniq_pages])
         end
+      end
+    end
+
+    context 'when the file is empty' do
+      let(:file) { './spec/fixtures/empty_webserver.log' }
+
+      it 'raises an error' do
+        expect { parser }.to raise_error('Your file is empty! Nothing to parse')
       end
     end
   end
